@@ -4,8 +4,10 @@ public class StepTracker {
     private static final int NUMBER_OF_DAYS = 30;
     private static final int NUMBER_OF_MONTHS = 12;
     private static int[][] DATA;
-    Scanner scanner = new Scanner(System.in);
+    private static int targetStepsInDay = 10_000;
+    static Scanner scanner = new Scanner(System.in);
     Converter converter = new Converter();
+    static int month;
 
     public StepTracker() {
         DATA = new int[NUMBER_OF_MONTHS][NUMBER_OF_DAYS];
@@ -14,14 +16,15 @@ public class StepTracker {
     public void showStatistics() {
         enterMonthNumber();
         printStepsPerMonthByDays();
-        TotalStepsPerMonth.printTotalStepsPerMonth(TotalStepsPerMonth.totalStepsPerMonth());
-        MaxStepsInDayPerMonth.printMaxStepsInDayPerMonth(MaxStepsInDayPerMonth.maxStepsInDayPerMonth());
-        AverageAmountOfSteps.printAverageAmountOfSteps(AverageAmountOfSteps.averageAmountOfSteps(TotalStepsPerMonth.totalStepsPerMonth()));
-        converter.getDistance(TotalStepsPerMonth.totalStepsPerMonth());
-        converter.getCaloriesBurned(TotalStepsPerMonth.totalStepsPerMonth());
-        FindBestSeries.printBestSeries(FindBestSeries.findBestSeries());
+        printTotalStepsPerMonth(totalStepsPerMonth());
+        printMaxStepsInDayPerMonth(maxStepsInDayPerMonth());
+        printAverageAmountOfSteps(averageAmountOfSteps(totalStepsPerMonth()));
+        converter.printDistance(converter.getDistance(totalStepsPerMonth()));
+        converter.printCaloriesBurned(converter.getCaloriesBurned(totalStepsPerMonth()));
+        printBestSeries(findBestSeriesOfDaysInARow());
     }
 
+    //добавление шагов
     public void addSteps() {
         System.out.print("Введите номер месяца: ");
         int month = scanner.nextInt();
@@ -53,8 +56,7 @@ public class StepTracker {
         System.out.println("Значение сохранено! Текущее количество пройденных шагов в данный день: " + totalSteps);
     }
 
-    static int month;
-
+    //валидация вводимого номера месяца
     private void enterMonthNumber() {
         System.out.print("Введите номер месяца: ");
         month = scanner.nextInt();
@@ -65,6 +67,7 @@ public class StepTracker {
         }
     }
 
+    //печать количества пройденных шагов по дням
     private void printStepsPerMonthByDays() {
         System.out.println("Количество пройденных шагов по дням:");
         for (int i = 0; i < DATA[month - 1].length; i++) {
@@ -72,89 +75,85 @@ public class StepTracker {
         }
     }
 
-    static class TotalStepsPerMonth {
-        static int totalStepsPerMonth() {
-            int totalStepsPerMonth = 0;
-            for (int i = 0; i < DATA[month - 1].length; i++) {
-                totalStepsPerMonth += DATA[month - 1][i];
-            }
-            return totalStepsPerMonth;
+    //подсчет общего количества шагов за месяц
+    private int totalStepsPerMonth() {
+        int totalStepsPerMonth = 0;
+        for (int i = 0; i < DATA[month - 1].length; i++) {
+            totalStepsPerMonth += DATA[month - 1][i];
         }
-
-        static void printTotalStepsPerMonth(int totalStepsPerMonth) {
-            System.out.println("\nОбщее количество шагов за месяц: " + totalStepsPerMonth);
-        }
+        return totalStepsPerMonth;
     }
 
-    static class MaxStepsInDayPerMonth {
-        static int maxStepsInDayPerMonth() {
-            int maxStepsPerMonth = 0;
-            for (int i = 0; i < DATA[month - 1].length; i++) {
-                if (DATA[month - 1][i] > maxStepsPerMonth)
-                    maxStepsPerMonth = DATA[month - 1][i];
-            }
-            return maxStepsPerMonth;
-        }
-
-        static void printMaxStepsInDayPerMonth(int maxStepsPerMonth) {
-            System.out.println("Максимальное пройденное количество шагов за день в месяце: " + maxStepsPerMonth);
-        }
+    //печать общего количества шагов за месяц
+    private void printTotalStepsPerMonth(int totalStepsPerMonth) {
+        System.out.println("\nОбщее количество шагов за месяц: " + totalStepsPerMonth);
     }
 
-    static class AverageAmountOfSteps {
-        static int averageAmountOfSteps(int totalStepsPerMonth) {
-            return totalStepsPerMonth / NUMBER_OF_DAYS;
+    //подсчет максимального пройденного количества шагов за день в месяце
+    private int maxStepsInDayPerMonth() {
+        int maxStepsPerMonth = 0;
+        for (int i = 0; i < DATA[month - 1].length; i++) {
+            if (DATA[month - 1][i] > maxStepsPerMonth)
+                maxStepsPerMonth = DATA[month - 1][i];
         }
-
-        static void printAverageAmountOfSteps(int averageAmountOfSteps) {
-            System.out.println("Среднее количество шагов: " + averageAmountOfSteps);
-        }
+        return maxStepsPerMonth;
     }
 
-    static class FindBestSeries {
-        static int findBestSeries() {
-            int maxCounter = 0;
-            int counter = 0;
-            for (int i = 0; i < DATA[month - 1].length; i++) {
-                if (DATA[month - 1][i] >= Goal.getTargetStepsInDay()) {
-                    counter++;
-                    if (counter > maxCounter) {
-                        maxCounter = counter;
-                    }
-                } else if (DATA[month - 1][i] < Goal.getTargetStepsInDay()) {
-                    counter = 0;
+    //печать максимального пройденного количества шагов за день в месяце
+    private void printMaxStepsInDayPerMonth(int maxStepsPerMonth) {
+        System.out.println("Максимальное пройденное количество шагов за день в месяце: " + maxStepsPerMonth);
+    }
+
+    //подсчет среднего количества шагов
+    private int averageAmountOfSteps(int totalStepsPerMonth) {
+        return totalStepsPerMonth / NUMBER_OF_DAYS;
+    }
+
+    //печать среднего количества шагов
+    private void printAverageAmountOfSteps(int averageAmountOfSteps) {
+        System.out.println("Среднее количество шагов: " + averageAmountOfSteps);
+    }
+
+    //поиск лучшей серии дней подряд
+    private int findBestSeriesOfDaysInARow() {
+        int maxCounter = 0;
+        int counter = 0;
+        for (int i = 0; i < DATA[month - 1].length; i++) {
+            if (DATA[month - 1][i] >= getTargetStepsInDay()) {
+                counter++;
+                if (counter > maxCounter) {
+                    maxCounter = counter;
                 }
+            } else if (DATA[month - 1][i] < getTargetStepsInDay()) {
+                counter = 0;
             }
-            return maxCounter;
         }
+        return maxCounter;
+    }
 
-        static void printBestSeries(int maxCounter) {
-            System.out.println("Лучшая серия: " + maxCounter);
+    //печать лучшей серии дней подряд
+    private void printBestSeries(int maxCounter) {
+        System.out.println("Лучшая серия: " + maxCounter);
+    }
+
+    //установка количества шагов в качестве новой цели
+    static void setNewGoal() {
+        System.out.print("\nКакое количество шагов Вы хотите установить в качестве новой цели? ");
+        int newTargetStepsInDay = scanner.nextInt();
+        setTargetStepsInDay(newTargetStepsInDay);
+    }
+
+    //валидация при установке количества шагов в качестве новой цели
+    public static void setTargetStepsInDay(int targetStepsInDay) {
+        if (targetStepsInDay >= 0) {
+            StepTracker.targetStepsInDay = targetStepsInDay;
+            System.out.println("\nНовая цель сохранена!\n");
+        } else {
+            System.out.println("\nИзвините, Вы ввели некорректное значение.\n");
         }
     }
 
-    static class Goal {
-        private static int targetStepsInDay = 10_000;
-        static Scanner scanner = new Scanner(System.in);
-
-        public static void setNewGoal() {
-            System.out.print("\nКакое количество шагов Вы хотите установить в качестве новой цели? ");
-            int newTargetStepsInDay = scanner.nextInt();
-            setTargetStepsInDay(newTargetStepsInDay);
-        }
-
-        public static void setTargetStepsInDay(int targetStepsInDay) {
-            if (targetStepsInDay >= 0) {
-                Goal.targetStepsInDay = targetStepsInDay;
-                System.out.println("\nНовая цель сохранена!\n");
-            } else {
-                System.out.println("\nИзвините, Вы ввели некорректное значение.\n");
-            }
-        }
-
-        public static int getTargetStepsInDay() {
-            return targetStepsInDay;
-        }
+    public static int getTargetStepsInDay() {
+        return targetStepsInDay;
     }
 }
-
